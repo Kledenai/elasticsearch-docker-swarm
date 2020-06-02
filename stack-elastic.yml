@@ -251,7 +251,7 @@ services:
       - --accessLog
     deploy:
       placement:
-        constraints: [ node.hostname == node-1 ]
+        constraints: [ node.hostname == labapp01 ]
       mode: replicated
       replicas: 1
       restart_policy:
