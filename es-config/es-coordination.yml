@@ -1,5 +1,5 @@
 cluster.name: "docker-swarm-cluster"
-#discovery.seed_hosts: master1,master2
+discovery.seed_hosts: master1,master2
 node.data: false
 node.master: false
 node.ingest: false
