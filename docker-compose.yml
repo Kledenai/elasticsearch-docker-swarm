@@ -20,43 +20,15 @@
 # Make sure to tune your VM to run Elasticsearch cluster by executing on each server:
 # sudo sysctl -w vm.max_map_count=262144
 # add --default-ulimit memlock=-1 to Dockerd
-# You can manage that by executing this command on each server consiting Swarm cluter: 
-# 
+# You can manage that by executing this command on each server consiting Swarm cluter:
+#
 # sudo "sed -i '/ExecStart=\/usr\/bin\/dockerd/ s/$/--default-ulimit memlock=-1/' /etc/systemd/system/docker.service.d/10-machine.conf"
 
 version: "3.7"
 
 services:
-  coordination:
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.7.2
-    healthcheck:
-      test: curl -fs http://localhost:9200/_cat/health || exit 1
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 45s
-    configs:
-      - source: es-coordination
-        target: /usr/share/elasticsearch/config/elasticsearch.yml
-      - source: jvm-options-coordination
-        target: /usr/share/elasticsearch/config/jvm.options
-    networks:
-      - esnet
-    ports:
-      - target: 9200
-        published: 9200
-        protocol: tcp
-        mode: host
-    deploy:
-      endpoint_mode: dnsrr
-      mode: "replicated"
-      replicas: 2
-      resources:
-        limits:
-          memory: 2G
-
   master1:
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.7.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
     healthcheck:
       test: curl -fs http://localhost:9200/_cat/health || exit 1
       interval: 30s
@@ -83,7 +55,7 @@ services:
           memory: 2G
 
   master2:
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.7.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
     healthcheck:
       test: curl -fs http://localhost:9200/_cat/health || exit 1
       interval: 30s
@@ -110,7 +82,7 @@ services:
           memory: 2G
 
   data1:
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.7.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
     healthcheck:
       test: curl -fs http://localhost:9200/_cat/health || exit 1
       interval: 30s
@@ -136,7 +108,7 @@ services:
         limits:
           memory: 3G
   data2:
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.7.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
     healthcheck:
       test: curl -fs http://localhost:9200/_cat/health || exit 1
       interval: 30s
@@ -162,7 +134,7 @@ services:
         limits:
           memory: 3G
   data3:
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.7.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
     healthcheck:
       test: curl -fs http://localhost:9200/_cat/health || exit 1
       interval: 30s
@@ -189,17 +161,17 @@ services:
           memory: 3G
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:6.7.2
+    image: docker.elastic.co/kibana/kibana:7.6.2
     environment:
-      - "ELASTICSEARCH_URL=http://data1:9200"
+      - SERVER_NAME=kibana
+      - SERVER_HOST="0"
+      - ELASTICSEARCH_URL=http://data1:9200
+      - ELASTICSEARCH_HOSTS=http://data1:9200
+      - ELASTICSEARCH_REQUESTTIMEOUT=90000
+      - "TZ=America/New_York"
     networks:
       - esnet
-      - proxy
     deploy:
-      labels:
-        - "traefik.port=5601"
-        - "traefik.docker.network=proxy"
-        - "traefik.frontend.rule=Host:kibana-labs.cometari.com"
       mode: replicated
       replicas: 1
       update_config:
@@ -222,55 +194,30 @@ services:
       placement:
         constraints: [node.role == manager]
 
-  traefik:
-    image: traefik:latest
+  haproxy:
+    image: haproxy:latest
     ports:
-      - "80:80"
-      - "8080:8080"
-      - "443:443"
-    networks:
-      - proxy
-    command:
-      - --api
-      - --docker
-      - --docker.swarmmode
-      - --docker.watch
-      - --entrypoints=Name:http Address::80 Redirect.EntryPoint:https
-      - --entrypoints=Name:https Address::443 TLS
-      - --defaultentrypoints=http,https
-      - --metrics
-      - --metrics.prometheus
-      - --acme
-      - --acme.email=kuba@cometari.com
-      - --acme.storage=/certificates/acme.json
-      - --acme.entryPoint=https
-      - --acme.httpChallenge.entryPoint=http
-      - --acme.onhostrule=true
-      - --acme.acmelogging=true
-      - --logLevel=INFO
-      - --accessLog
-    deploy:
-      placement:
-        constraints: [ node.hostname == labapp01 ]
-      mode: replicated
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-      labels:
-        - "traefik.docker.network=proxy"
-        - "traefik.port=8080"
+      - 443:443
+      - 8443:8443
+      - 9201:9200
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-      - "traefik-certificates:/certificates"
+      - ./haproxy/:/usr/local/etc/haproxy:ro
+    environment:
+      - TZ=America/New_York
+    deploy:
+      mode: global
+      placement:
+        constraints: [node.role ==  manager]
+    networks:
+      - elastic
+    dns:
+      - 127.0.0.11
 
 networks:
   esnet:
     driver: overlay
     attachable: true
     name: esnet
-  proxy:
-    driver: overlay
-    name: proxy
 
 volumes:
   esmaster1:
@@ -306,7 +253,7 @@ configs:
     name: jvm-options-coordination
     file: es-config/jvm.coordination.options
   jvm-options-data:
-    name: jvm-options-data 
+    name: jvm-options-data
     file: es-config/jvm.data.options
   jvm-options-master:
     name: jvm-options-master
