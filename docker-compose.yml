@@ -209,7 +209,7 @@ services:
       placement:
         constraints: [node.role ==  manager]
     networks:
-      - elastic
+      - esnet
     dns:
       - 127.0.0.11
 
