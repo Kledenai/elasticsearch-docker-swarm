@@ -1,5 +1,4 @@
 cluster.name: "docker-swarm-cluster"
-discovery.zen.minimum_master_nodes: 2
 discovery.seed_hosts:
   - master1
   - master2
