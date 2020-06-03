@@ -29,12 +29,12 @@ version: "3.7"
 services:
   master1:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
-    healthcheck:
-      test: curl -fs http://localhost:9200/_cat/health || exit 1
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 45s
+    #healthcheck:
+      #test: curl -fs http://localhost:9200/_cat/health || exit 1
+      #interval: 30s
+      #timeout: 5s
+      #retries: 3
+      #start_period: 45s
     configs:
       - source: es-master1
         target: /usr/share/elasticsearch/config/elasticsearch.yml
@@ -56,12 +56,12 @@ services:
 
   master2:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
-    healthcheck:
-      test: curl -fs http://localhost:9200/_cat/health || exit 1
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 45s
+    #healthcheck:
+      #test: curl -fs http://localhost:9200/_cat/health || exit 1
+      #interval: 30s
+      #timeout: 5s
+      #retries: 3
+      #start_period: 45s
     configs:
       - source: es-master2
         target: /usr/share/elasticsearch/config/elasticsearch.yml
