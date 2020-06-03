@@ -6,9 +6,6 @@ node.master: true
 node.ingest: false
 node.name: es-master1
 bootstrap.memory_lock: false
-discovery.find_peers_interval: 10s
-discovery.zen.ping_timeout: 15s
-discovery.zen.commit_timeout: 15s
 action.destructive_requires_name: true
 xpack.license.self_generated.type: basic
 xpack.security.enabled: false
