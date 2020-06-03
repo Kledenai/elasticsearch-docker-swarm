@@ -1,5 +1,5 @@
 cluster.name: "docker-swarm-cluster"
-discovery.seed_hosts: master1,master2
+discovery.seed_hosts: master1
 node.data: false
 node.master: true
 node.ingest: false
@@ -7,7 +7,7 @@ node.name: es-master2
 bootstrap.memory_lock: false
 discovery.zen.ping_timeout: 5s
 discovery.zen.commit_timeout: 5s
-cluster.initial_master_nodes: es_master1,es_master2
+cluster.initial_master_nodes: es_master1.1,es_master2.1
 network.host: 0.0.0.0
 action.destructive_requires_name: true
 xpack.license.self_generated.type: basic
