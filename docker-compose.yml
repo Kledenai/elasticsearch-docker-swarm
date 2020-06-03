@@ -182,6 +182,14 @@ services:
         condition: on-failure
         delay: 10s
         max_attempts: 3
+    ports:
+      - 5601:5601
+    depends_on:
+      - master1
+      - master2
+      - data1
+      - data2
+      - data3
 
   visualizer:
     image: dockersamples/visualizer
@@ -199,7 +207,7 @@ services:
     ports:
       - 443:443
       - 8443:8443
-      - 9200:9200
+      - 9201:9200
     volumes:
       - ./haproxy/:/usr/local/etc/haproxy:ro
     environment:
