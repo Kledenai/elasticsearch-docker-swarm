@@ -35,11 +35,18 @@ services:
       timeout: 5s
       retries: 3
       start_period: 45s
-    configs:
-      - source: es-master
-        target: /usr/share/elasticsearch/config/elasticsearch.yml
-      - source: jvm-options-master
-        target: /usr/share/elasticsearch/config/jvm.options
+    environment:
+      - cluster.name=docker-swarm-cluster
+      - discovery.seed_hosts=master
+      - node.data=false
+      - node.master=true
+      - node.ingest=false
+      - node.name=es_master.{{.Task.Slot}}
+      - cluster.initial_master_nodes=es_master.1,es_master.2,es_master.3
+      - bootstrap.memory_lock=false
+      - ELASTIC_PASSWORD=Senha123
+      - xpack.security.enabled=false
+      - xpack.license.self_generated.type=basic
     networks:
       - esnet
     volumes:
