@@ -50,7 +50,7 @@ services:
     networks:
       - esnet
     volumes:
-      - esmaster:/usr/share/elasticsearch/data
+      - master:/usr/share/elasticsearch/data
     deploy:
       placement:
         constraints: [ node.hostname == manager ]
@@ -200,7 +200,8 @@ networks:
     name: esnet
 
 volumes:
-  esmaster:
+  master:
+    name: '{{.Service.Name}}-{{.Task.Slot}}'
   esdata1:
   esdata2:
   esdata3:
