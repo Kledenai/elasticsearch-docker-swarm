@@ -1,13 +1,11 @@
 cluster.name: "docker-swarm-cluster"
-discovery.zen.minimum_master_nodes: 1
+discovery.zen.minimum_master_nodes: 2
 discovery.seed_hosts:
   - master1
   - master2
-  - es_master1
-  - es_master2
   - es-master1
   - es-master2
-cluster.initial_master_nodes: es_master1,es_master2
+cluster.initial_master_nodes: es-master1,es-master2
 node.data: false
 node.master: true
 node.ingest: false
