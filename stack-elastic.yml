@@ -137,6 +137,8 @@ services:
       - ELASTICSEARCH_HOSTS=http://data1:9200
       - ELASTICSEARCH_REQUESTTIMEOUT=90000
       - "TZ=America/New_York"
+    ports:
+      - 5601:5601
     networks:
       - esnet
     deploy:
