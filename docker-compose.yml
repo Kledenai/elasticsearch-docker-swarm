@@ -222,11 +222,9 @@ networks:
 volumes:
   esmaster1:
   esmaster2:
-
   esdata1:
   esdata2:
   esdata3:
-  traefik-certificates:
 
 configs:
   es-coordination:
