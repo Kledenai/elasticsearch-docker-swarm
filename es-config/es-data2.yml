@@ -13,3 +13,4 @@ discovery.zen.commit_timeout: 15s
 action.destructive_requires_name: true
 xpack.license.self_generated.type: basic
 xpack.security.enabled: false
+network.host: 0.0.0.0
