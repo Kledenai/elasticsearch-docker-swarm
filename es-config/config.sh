@@ -2,6 +2,8 @@
 
 sudo docker config create es-coordination es-coordination.yml
 
+sudo docker config create es-master es-master.yml
+
 sudo docker config create es-master1 es-master1.yml
 
 sudo docker config create es-master2 es-master2.yml
