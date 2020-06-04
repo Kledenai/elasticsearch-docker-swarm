@@ -180,14 +180,19 @@ networks:
 volumes:
   esmaster1:
     driver: rexray/s3fs:latest
+    name: 'esmaster1'
   esmaster2:
     driver: rexray/s3fs:latest
+    name: 'esmaster2'
   esdata1:
     driver: rexray/s3fs:latest
+    name: 'esdata1'
   esdata2:
     driver: rexray/s3fs:latest
+    name: 'esdata2'
   esdata3:
     driver: rexray/s3fs:latest
+    name: 'esdata3'
 
 configs:
   es-master1:
