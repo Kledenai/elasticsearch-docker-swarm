@@ -229,10 +229,15 @@ networks:
 
 volumes:
   esmaster1:
+    driver: rexray/s3fs
   esmaster2:
+    driver: rexray/s3fs
   esdata1:
+    driver: rexray/s3fs
   esdata2:
+    driver: rexray/s3fs
   esdata3:
+    driver: rexray/s3fs
 
 configs:
   es-coordination:
