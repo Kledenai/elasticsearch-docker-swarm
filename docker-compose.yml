@@ -29,12 +29,6 @@ version: "3.7"
 services:
   master1:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
-    healthcheck:
-      test: curl -fs http://localhost:9200/_cat/health || exit 1
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 45s
     configs:
       - source: es-master1
         target: /usr/share/elasticsearch/config/elasticsearch.yml
@@ -56,12 +50,6 @@ services:
 
   master2:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
-    healthcheck:
-      test: curl -fs http://localhost:9200/_cat/health || exit 1
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 45s
     configs:
       - source: es-master2
         target: /usr/share/elasticsearch/config/elasticsearch.yml
@@ -80,15 +68,8 @@ services:
       resources:
         limits:
           memory: 2G
-
   data1:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
-    healthcheck:
-      test: curl -fs http://localhost:9200/_cat/health || exit 1
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 45s
     configs:
       - source: es-data1
         target: /usr/share/elasticsearch/config/elasticsearch.yml
@@ -109,12 +90,6 @@ services:
           memory: 3G
   data2:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
-    healthcheck:
-      test: curl -fs http://localhost:9200/_cat/health || exit 1
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 45s
     configs:
       - source: es-data2
         target: /usr/share/elasticsearch/config/elasticsearch.yml
@@ -135,12 +110,6 @@ services:
           memory: 3G
   data3:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
-    healthcheck:
-      test: curl -fs http://localhost:9200/_cat/health || exit 1
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 45s
     configs:
       - source: es-data3
         target: /usr/share/elasticsearch/config/elasticsearch.yml
@@ -159,7 +128,6 @@ services:
       resources:
         limits:
           memory: 3G
-
   kibana:
     image: docker.elastic.co/kibana/kibana:7.6.2
     environment:
@@ -169,6 +137,8 @@ services:
       - ELASTICSEARCH_HOSTS=http://data1:9200
       - ELASTICSEARCH_REQUESTTIMEOUT=90000
       - "TZ=America/New_York"
+    ports:
+      - 5601:5601
     networks:
       - esnet
     deploy:
@@ -182,32 +152,13 @@ services:
         condition: on-failure
         delay: 10s
         max_attempts: 3
-    ports:
-      - 5601:5601
-    depends_on:
-      - master1
-      - master2
-      - data1
-      - data2
-      - data3
-
-  visualizer:
-    image: dockersamples/visualizer
-    ports:
-      - "8081:8080"
-    stop_grace_period: 1m30s
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-    deploy:
-      placement:
-        constraints: [node.role == manager]
 
   haproxy:
     image: haproxy:latest
     ports:
       - 443:443
       - 8443:8443
-      - 9201:9200
+      - 9200:9200
     volumes:
       - ./haproxy/:/usr/local/etc/haproxy:ro
     environment:
@@ -224,7 +175,6 @@ services:
 networks:
   esnet:
     driver: overlay
-    attachable: true
     name: esnet
 
 volumes:
@@ -235,9 +185,6 @@ volumes:
   esdata3:
 
 configs:
-  es-coordination:
-    name: es-coordination
-    file: es-config/es-coordination.yml
   es-master1:
     name: es-master1
     file: es-config/es-master1.yml

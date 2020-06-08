@@ -7,16 +7,16 @@ This is example configuration which launches *Elasticsearch Cluster* on *Docker 
 - service with Elasticsearch data nodes responsible for CRUD operations
 - service visualizer which is presenting how containers are spread acorss the Docker Swarm Cluster
 
-In order to run it I recommend to have at least 4 VM's provisioned. You can try AWS or even virtualbox running on your local machine. The easiest way is to setup servers using docker-machine. In this example I am using my AWS account (you can specify amazonec2-access-key and amazonec2_security_key in command line or use it ~/.aws/credentials and defined default profile) 
+In order to run it I recommend to have at least 4 VM's provisioned. You can try AWS or even virtualbox running on your local machine. The easiest way is to setup servers using docker-machine. In this example I am using my AWS account (you can specify amazonec2-access-key and amazonec2_security_key in command line or use it ~/.aws/credentials and defined default profile)
 
 ## Persitence in SWARM
 
-Elasticsearch is distributed document oriented database, in our scenario it requires to keep a data in safe place. That's why I used `volume` features and use `constraint` to run data node exactly on the origin node where it was initially deployed. 
+Elasticsearch is distributed document oriented database, in our scenario it requires to keep a data in safe place. That's why I used `volume` features and use `constraint` to run data node exactly on the origin node where it was initially deployed.
 Use replica crea
 
 ## Elasticsearch configuration files
 
-I moved the entire Elasticsearch configuration into sepreate YML files, because the only a few parameters are taken from environment variables. The same has been done with tunning JVM. 
+I moved the entire Elasticsearch configuration into sepreate YML files, because the only a few parameters are taken from environment variables. The same has been done with tunning JVM.
 
 # Provisioning virtual machines
 Execute the following command to provision servers:
@@ -26,20 +26,27 @@ docker-machine create --driver amazonec2 --amazonec2-region eu-central-1 --amazo
 ```
 
 The given command should be executed 4 times at least, make sure you change hostname every time you are executing the command,the last argument in the command.
-Please note that created AWS security group is only for demonstration purposes, you never should expose crucial ports to the internet. 
+Please note that created AWS security group is only for demonstration purposes, you never should expose crucial ports to the internet.
 
 # Tuning virtual machines
-Before running a stack, minor changes have to be adopted on each of newaly created Vm's, 
-1. Edit /etc/sysctl.conf by adding following `vm.max_map_count=262144` or just simple execute 
+
+Before running a stack, minor changes have to be adopted on each of newaly created Vm's,
+
+1. Edit /etc/sysctl.conf by adding following `vm.max_map_count=262144` or just simple execute
+
 ```shell
 docker-machine ssh node-1 sudo sysctl -w vm.max_map_count=262144
-``` 
-for each of the node. 
+```
+
+for each of the node.
+
 Better to add that add it paramentnly:
-```shell 
+
+```shell
 docker-machine ssh swarm-4  sudo "sed -i '$ a vm\.max_map_count=262144' /etc/sysctl.conf"
 ```
-2. Edit file `/etc/systemd/system/docker.service.d/10-machine.conf` and modify default ulimit because Elasticsearch cluster is requesting memory locking (see `bootstrap.memory_lock=true`), thus following parameter to ExecStart `--default-ulimit memlock=-1`. You can simple execute that command on the each of the node: 
+
+2. Edit file `/etc/systemd/system/docker.service.d/10-machine.conf` and modify default ulimit because Elasticsearch cluster is requesting memory locking (see `bootstrap.memory_lock=true`), thus following parameter to ExecStart `--default-ulimit memlock=-1`. You can simple execute that command on the each of the node:
 
 ```shell
 docker-machine ssh node-1 sudo "sed -i '/ExecStart=\/usr\/bin\/dockerd/ s/$/--default-ulimit memlock=-1/' /etc/systemd/system/docker.service.d/10-machine.conf"
@@ -49,6 +56,7 @@ Please note that location of that file might be different depending of your Linu
 After that execute on each of the node `systemctl daemon-reload` and restart Docker daemon `systemctl restart docker`
 
 # Initiating Docker Swarm cluster
+
 Once vm's are created you can initiate Docker swarm cluster. Export environment variables belonging to the one of the nodes:
 
 ```shell
@@ -66,18 +74,20 @@ then connect to the other vm's and add them accordingly to the cluster, for test
 Make sure the cluster is working by executine command:
 
 # Listing of the nodes consisting Docker Swarm cluster
+
 ```shell
 docker node ls
 ```
 
-```
+```response
 ID                            HOSTNAME            STATUS              AVAILABILITY        MANAGER STATUS      ENGINE VERSION
 iqepxq2w46nprlgm55gomf1ic *   node-1              Ready               Active              Leader              18.09.0
 1rruyl7x9s9x43rql0x2jibx0     node-2              Ready               Active                                  18.09.0
 yqoycyrs9j0cb1me7cwr77764     node-3              Ready               Active                                  18.09.0
 56yflx8vy47oi3upycouzpjpj     node-4              Ready               Active                                  18.09.0
 ```
-# Create configuration in SWARM 
+
+# Create configuration in SWARM
 
 Swarm provides nice to feature to store configuration files into RAFT, so executing following commands to create appropriate configugration:
 
@@ -95,7 +105,7 @@ docker config create jvm-options-data jvm.options
 docker config create jvm-options-master jvm.options
 ```
 
-```
+```response
 ID                          NAME                       CREATED             UPDATED
 nyh52lw5lgdixdlsi1fol67wv   es-coordination            6 minutes ago       6 minutes ago
 owfgm5s14igyxkpn9yr619w6y   es-data                    5 minutes ago       5 minutes ago
@@ -105,7 +115,8 @@ qhcytwr88axtklm4b7as56eur   jvm-options-data           3 minutes ago       3 min
 mzj666cjkjkugfuly9z905026   jvm-options-master         3 minutes ago       3 minutes ago
 ```
 
-# Deploying stack 
+# Deploying stack
+
 Than deploy a stack by executing the following command:
 
 ```shell 
@@ -113,12 +124,14 @@ docker stack deploy -c docker-compose.yml es
 ```
 
 # Validating the status of Elasticsearch cluster
+
 After a few minutes you should be able to get cluster state and list of nodes consisting the Elasticsearch cluster. 
 
 ```shell
 curl ${IP_ADDRESS}:9200/_cluster/health?pretty
 ```
-```json 
+
+```json
 {
   "cluster_name" : "docker-swarm-cluster",
   "status" : "green",
@@ -143,7 +156,8 @@ curl ${IP_ADDRESS}:9200/_cluster/health?pretty
 ```shell
 curl ${IP_ADDRESS}:9200/_cat/node
 ```
-```
+
+```response
 10.0.1.2  27 97 45 2.90 1.39 0.52 - - jeZY0C4
 10.0.1.11 44 78 33 1.57 0.82 0.31 - - TtYZYAH
 10.0.1.14 28 57 24 0.84 0.43 0.16 d - cCKt4Dd
@@ -157,9 +171,10 @@ curl ${IP_ADDRESS}:9200/_cat/node
 10.0.1.19 45 57 23 0.88 0.39 0.14 d - vSI0shW
 ```
 
-Due to service mesh feature built-in Docker Swarm you choose any of the IP addresses of your nodes. Docker Swarm will route the request to the appropriate coordination node running on virtual machines being a member of Docker Swarm cluster. 
+Due to service mesh feature built-in Docker Swarm you choose any of the IP addresses of your nodes. Docker Swarm will route the request to the appropriate coordination node running on virtual machines being a member of Docker Swarm cluster.
 
 # Listing of running stacks
+
 ```shell
 docker stack ls
 ```
@@ -186,15 +201,15 @@ uszn9mxmeubh        elastic_master           replicated          3/3            
 Please note that service coordination has to replicate mode set to `global`, it means that we are requesting to have Elasticsearch coordination instance running on each of the node consisting Docker Swarm cluster.  Other services have defined replicas as an integer. 
 
 # Listing of specific task running on a particular node
+
 ```shell
 docker service ps elastic_coordination
 ```
 
-```
+```response
 ID                  NAME                                             IMAGE                 NODE                DESIRED STATE       CURRENT STATE           ERROR               PORTS
 y6lfnbnavy7z        elastic_coordination.yqoycyrs9j0cb1me7cwr77764   elasticsearch:6.5.3   node-3              Running             Running 2 minutes ago                       *:9200->9200/tcp
 1f1xk71zug9z        elastic_coordination.iqepxq2w46nprlgm55gomf1ic   elasticsearch:6.5.3   node-1              Running             Running 2 minutes ago                       *:9200->9200/tcp
 fpu2bdmnnfl2        elastic_coordination.56yflx8vy47oi3upycouzpjpj   elasticsearch:6.5.3   node-4              Running             Running 2 minutes ago                       *:9200->9200/tcp
 l8lozi001l2l        elastic_coordination.1rruyl7x9s9x43rql0x2jibx0   elasticsearch:6.5.3   node-2              Running             Running 2 minutes ago                       *:9200->9200/tcp
 ```
-
