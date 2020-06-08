@@ -89,7 +89,7 @@ yqoycyrs9j0cb1me7cwr77764     node-3              Ready               Active    
 
 # Create configuration in SWARM
 
-Swarm provides nice to feature to store configuration files into RAFT, so executing following commands to create appropriate configugration:
+Swarm provides nice to feature to store configuration files into RAFT, so executing following commands to create appropriate configuration:
 
 ```shell 
 docker config create es-coordination es-coordination.yml
